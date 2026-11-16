@@ -1,0 +1,152 @@
+
+>>> ARQUIVO: queries/consulta_01.sql
+Pergunta 01: Qual é a evolução anual e trimestral da receita de produtos, do valor total de frete e do faturamento bruto dos itens vendidos, incluindo subtotais por ano e total geral (ROLLUP)?
+--------------------------------------------------------------------------------------------------------------
+        ano    trimestre  qtd_itens_vendidos receita_produtos total_frete faturamento_total
+       2016 3o Trimestre                   6           267.36       87.39            354.75
+       2016 4o Trimestre                 364         49518.56     7309.90          56828.46
+       2016 Subtotal Ano                 370         49785.92     7397.29          57183.21
+       2017 1o Trimestre                5906        741960.19   113557.51         855517.70
+       2017 2o Trimestre               10403       1299036.97   202539.26        1501576.23
+       2017 3o Trimestre               14260       1696404.85   277170.28        1973575.13
+       2017 4o Trimestre               20295       2418404.97   393598.40        2812003.37
+       2017 Subtotal Ano               50864       6155806.98   986865.45        7142672.43
+       2018 1o Trimestre               24097       2777422.51   471915.16        3249337.67
+       2018 2o Trimestre               22978       2858289.74   473867.23        3332156.97
+       2018 3o Trimestre               14341       1750338.55   311864.41        2062202.96
+       2018 Subtotal Ano               61416       7386050.80  1257646.80        8643697.60
+TOTAL GERAL Subtotal Ano              112650      13591643.70  2251909.54       15843553.24
+
+
+>>> ARQUIVO: queries/consulta_02.sql
+Pergunta 02: Quais são as 10 categorias de produtos (em português e inglês) com maior receita acumulada de vendas, qual o volume de itens vendidos e o ticket médio por item em cada categoria?
+--------------------------------------------------------------------------------------------------------------
+          categoria_pt          categoria_en  qtd_itens_vendidos  qtd_pedidos receita_produtos ticket_medio_item faturamento_com_frete
+          beleza_saude         health_beauty                9670         8836       1258681.34            130.16            1441248.07
+    relogios_presentes         watches_gifts                5991         5624       1205005.68            201.14            1305541.61
+       cama_mesa_banho        bed_bath_table               11115         9417       1036988.68             93.30            1241681.72
+         esporte_lazer        sports_leisure                8641         7720        988048.97            114.34            1156656.48
+informatica_acessorios computers_accessories                7827         6689        911954.32            116.51            1059272.40
+      moveis_decoracao       furniture_decor                8334         6449        729762.49             87.56             902511.79
+            cool_stuff            cool_stuff                3796         3632        635290.85            167.36             719329.95
+ utilidades_domesticas            housewares                6964         5884        632248.66             90.79             778397.77
+            automotivo                  auto                4235         3897        592720.11            139.96             685384.32
+    ferramentas_jardim          garden_tools                4347         3518        485256.46            111.63             584219.21
+
+
+>>> ARQUIVO: queries/consulta_03.sql
+Pergunta 03: Como se distribuem a receita de produtos e o gasto com frete por Região e UF de destino do cliente, considerando os subtotais por Região e o total geral (GROUPING SETS)?
+--------------------------------------------------------------------------------------------------------------
+      regiao              uf  qtd_itens receita_produtos total_frete frete_medio_item pct_frete_sobre_total
+TOTAL BRASIL Subtotal Regiao     112650      13591643.70  2251909.54            19.99                 14.21
+     Sudeste Subtotal Regiao      77413       8887393.06  1344930.44            17.37                 13.14
+     Sudeste              SP      47449       5202955.05   718723.07            15.15                 12.14
+         Sul Subtotal Regiao      16151       1953941.12   343034.68            21.24                 14.93
+     Sudeste              RJ      14579       1824092.67   305589.31            20.96                 14.35
+     Sudeste              MG      13129       1585308.03   270853.46            20.63                 14.59
+    Nordeste Subtotal Regiao      10409       1545493.75   335305.79            32.21                 17.83
+Centro-Oeste Subtotal Regiao       6613        870462.06   152599.94            23.08                 14.92
+         Sul              RS       6235        750304.02   135522.74            21.74                 15.30
+         Sul              PR       5740        683083.76   117851.68            20.53                 14.71
+         Sul              SC       4176        520553.34    89660.26            21.47                 14.69
+    Nordeste              BA       3799        511349.99   100156.68            26.36                 16.38
+       Norte Subtotal Regiao       2064        334353.71    76038.69            36.84                 18.53
+Centro-Oeste              DF       2406        302603.94    50625.50            21.04                 14.33
+Centro-Oeste              GO       2333        294591.95    53114.98            22.77                 15.28
+     Sudeste              ES       2256        275037.31    49764.60            22.06                 15.32
+    Nordeste              PE       1806        262788.03    59449.66            32.92                 18.45
+    Nordeste              CE       1478        227254.71    48351.59            32.71                 17.54
+       Norte              PA       1080        178947.81    38699.30            35.83                 17.78
+Centro-Oeste              MT       1055        156453.53    29715.43            28.17                 15.96
+    Nordeste              MA        824        119648.22    31523.77            38.26                 20.85
+Centro-Oeste              MS        819        116812.64    19144.03            23.37                 14.08
+    Nordeste              PB        602        115268.08    25719.73            42.72                 18.24
+    Nordeste              PI        542         86914.08    21218.20            39.15                 19.62
+    Nordeste              RN        529         83034.98    18860.10            35.65                 18.51
+    Nordeste              AL        444         80314.81    15914.59            35.84                 16.54
+    Nordeste              SE        385         58920.85    14111.47            36.65                 19.32
+       Norte              TO        315         49621.74    11732.68            37.25                 19.12
+       Norte              RO        278         46140.64    11417.38            41.07                 19.84
+       Norte              AM        165         22356.84     5478.89            33.21                 19.68
+       Norte              AC         92         15982.95     3686.75            40.07                 18.74
+       Norte              AP         82         13474.30     2788.50            34.01                 17.15
+       Norte              RR         52          7829.43     2235.19            42.98                 22.21
+
+
+>>> ARQUIVO: queries/consulta_04.sql
+Pergunta 04: Quais são os 10 vendedores com maior receita acumulada de produtos, quantos itens e pedidos atenderam e qual a sua localização (cidade, UF e região)?
+--------------------------------------------------------------------------------------------------------------
+                       seller_id  cidade_vendedor uf_vendedor regiao_vendedor  qtd_pedidos_atendidos  qtd_itens_vendidos receita_produtos preco_medio_item
+4869f7a5dfa277a7dca6462dcf3b52b2          Guariba          SP         Sudeste                   1132                1156        229472.63           198.51
+53243585a1d6dc2643021fd1853d8905 Lauro De Freitas          BA        Nordeste                    358                 410        222776.05           543.36
+4a3ca9315b744ce9f8e9374361493884         Ibitinga          SP         Sudeste                   1806                1987        200472.92           100.89
+fa1c13f2614d7b5c4749cbc52fecda94           Sumare          SP         Sudeste                    585                 586        194042.03           331.13
+7c67e1448b00f6e969d365cea6b010ab  Itaquaquecetuba          SP         Sudeste                    982                1364        187923.89           137.77
+7e93a43ef30c4f03f38b393420bc753a          Barueri          SP         Sudeste                    336                 340        176431.87           518.92
+da8622b14eb17ae2831f4ac5b9dab84a       Piracicaba          SP         Sudeste                   1314                1551        160236.57           103.31
+7a67c85e85bb2ce8582c35f2203ad736        Sao Paulo          SP         Sudeste                   1160                1171        141745.53           121.05
+1025f0e2d44d7041d6cf58b6550e0bfa        Sao Paulo          SP         Sudeste                    915                1428        138968.55            97.32
+955fee9216a65b617aa5c0531780ce60        Sao Paulo          SP         Sudeste                   1287                1499        135171.70            90.17
+
+
+>>> ARQUIVO: queries/consulta_05.sql
+Pergunta 05: Qual é o faturamento total, o volume de itens vendidos e a média de faturamento por dia em dias úteis em comparação com finais de semana e feriados nacionais?
+--------------------------------------------------------------------------------------------------------------
+tipo_dia_calendario  qtd_dias_com_vendas  qtd_pedidos  qtd_itens_vendidos faturamento_total media_faturamento_por_dia
+           Dia Util                  425        74085               84935       11936047.88                  28084.82
+      Fim de Semana                  173        22289               25131        3547424.27                  20505.34
+   Feriado Nacional                   18         2292                2584         360081.09                  20004.51
+
+
+>>> ARQUIVO: queries/consulta_06.sql
+Pergunta 06: Quantos clientes reais (customer_unique_id) realizaram mais de um pedido na plataforma e qual é o valor médio gasto por cliente recorrente em comparação aos clientes de compra única?
+--------------------------------------------------------------------------------------------------------------
+              perfil_fidelidade  qtd_clientes_unicos pct_clientes total_pedidos faturamento_total gasto_medio_por_cliente
+Cliente Compra Unica (1 pedido)                92507        96.95         92507       14939106.99                  161.49
+Cliente Recorrente (2+ pedidos)                 2913         3.05          6159         904446.25                  310.49
+
+
+>>> ARQUIVO: queries/consulta_07.sql
+Pergunta 07: Qual é o tempo médio real de entrega (em dias) e a diferença média em relação ao prazo estimado por Região de destino do cliente nos pedidos entregues?
+--------------------------------------------------------------------------------------------------------------
+regiao_cliente  qtd_itens_entregues media_dias_entrega_real media_diferenca_estimativa_dias  qtd_itens_atrasados taxa_atraso_pct
+         Norte                 2018                   22.55                          -15.76                  176            8.72
+      Nordeste                10087                   19.85                          -11.51                 1266           12.55
+  Centro-Oeste                 6480                   14.88                          -12.49                  419            6.47
+           Sul                15879                   13.93                          -13.24                  912            5.74
+       Sudeste                75725                   10.62                          -11.70                 4491            5.93
+
+
+>>> ARQUIVO: queries/consulta_08.sql
+Pergunta 08: Qual é o percentual trimestral de itens entregues com atraso (entregues após a data estimada) e como se comporta o valor médio de frete nesses períodos?
+--------------------------------------------------------------------------------------------------------------
+ ano nome_trimestre  total_itens_entregues  itens_atrasados pct_atraso prazo_medio_dias frete_medio_item
+2016   3o Trimestre                      3                3     100.00            55.00             2.83
+2016   4o Trimestre                    314                2       0.64            19.57            19.66
+2017   1o Trimestre                   5668              218       3.85            13.10            19.02
+2017   2o Trimestre                  10061              391       3.89            12.57            19.46
+2017   3o Trimestre                  13950              474       3.40            11.28            19.32
+2017   4o Trimestre                  19875             1665       8.38            14.13            19.40
+2018   1o Trimestre                  23572             2956      12.54            15.58            19.52
+2018   2o Trimestre                  22644              895       3.95            10.56            20.60
+2018   3o Trimestre                  14102              660       4.68             8.21            21.75
+
+
+>>> ARQUIVO: queries/consulta_09.sql
+Pergunta 09: Qual é a participação de cada meio de pagamento no valor total transacionado, na quantidade de transações e qual é o número médio de parcelas contratadas?
+--------------------------------------------------------------------------------------------------------------
+tipo_pagamento_pt modalidade_cobranca  qtd_transacoes_pagamento  qtd_pedidos valor_total_pago participacao_valor_pct media_parcelas ticket_medio_transacao
+Cartao de Credito  Credito/Parcelavel                     76795        76505      12542084.19                  78.34           3.51                 163.32
+  Boleto Bancario             A Vista                     19784        19784       2869361.27                  17.92           1.00                 145.03
+   Voucher / Vale             A Vista                      5775         3866        379436.87                   2.37           1.00                  65.70
+ Cartao de Debito             A Vista                      1529         1528        217989.79                   1.36           1.00                 142.57
+     Nao Definido              Outros                         3            3             0.00                   0.00           1.00                   0.00
+
+
+>>> ARQUIVO: queries/consulta_10.sql
+Pergunta 10: Qual é o impacto da pontualidade logística de entrega (No Prazo vs. Atrasado vs. Não Entregue) sobre a nota média de avaliação dos clientes (nota_avaliacao) e o tempo médio de espera?
+--------------------------------------------------------------------------------------------------------------
+status_pontualidade_entrega  qtd_pedidos  qtd_itens_avaliados nota_media_avaliacao media_dias_entrega media_dias_atraso
+                   No Prazo        89941               102285                 4.21              10.90            -13.62
+                   Atrasado         6535                 7084                 2.26              33.75             10.49
+               Nao Entregue         2190                 2339                 1.75               None              None

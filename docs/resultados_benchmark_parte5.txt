@@ -1,0 +1,205 @@
+==============================================================================================================
+>>> Caso 1 — Consulta Analítica Seletiva de Atrasos Logísticos e Satisfação no 1º Trimestre de 2018
+--------------------------------------------------------------------------------------------------------------
+  * Tempo de Execução ANTES (Sem Índices / Fato Bruta) : Mediana =   32.910 ms | Média =   32.481 ms
+  * Tempo de Execução DEPOIS (Com Índices / Otimizado) : Mediana =    1.889 ms | Média =    2.251 ms
+  * Ganho Medido                                       : Redução de 94.3% (17.42x mais rápido)
+
+[PLANO DE EXECUÇÃO — ANTES]
+GroupAggregate  (cost=35.77..4507.53 rows=1 width=115) (actual time=32.854..32.857 rows=1 loops=1)
+  Buffers: shared hit=3020
+  ->  Hash Join  (cost=35.77..4493.29 rows=1422 width=23) (actual time=0.248..32.398 rows=2957 loops=1)
+        Hash Cond: (f.sk_status_pedido = s.sk_status_pedido)
+        Buffers: shared hit=3020
+        ->  Hash Join  (cost=34.58..4459.93 rows=9242 width=16) (actual time=0.207..29.875 rows=24097 loops=1)
+              Hash Cond: (f.sk_tempo_compra = t.sk_tempo)
+              Buffers: shared hit=3019
+              ->  Seq Scan on fato_vendas_itens f  (cost=0.00..4128.50 rows=112650 width=20) (actual time=0.006..8.891 rows=112650 loops=1)
+                    Buffers: shared hit=3002
+              ->  Hash  (cost=33.45..33.45 rows=90 width=4) (actual time=0.192..0.193 rows=90 loops=1)
+                    Buckets: 1024  Batches: 1  Memory Usage: 12kB
+                    Buffers: shared hit=17
+                    ->  Seq Scan on dim_tempo t  (cost=0.00..33.45 rows=90 width=4) (actual time=0.112..0.176 rows=90 loops=1)
+                          Filter: ((ano = 2018) AND (trimestre = 1))
+                          Rows Removed by Filter: 1007
+                          Buffers: shared hit=17
+        ->  Hash  (cost=1.16..1.16 rows=2 width=15) (actual time=0.016..0.017 rows=2 loops=1)
+              Buckets: 1024  Batches: 1  Memory Usage: 9kB
+              Buffers: shared hit=1
+              ->  Seq Scan on dim_status_pedido s  (cost=0.00..1.16 rows=2 width=15) (actual time=0.010..0.012 rows=2 loops=1)
+                    Filter: ((status_pontualidade_entrega)::text = 'Atrasado'::text)
+                    Rows Removed by Filter: 11
+                    Buffers: shared hit=1
+Planning:
+  Buffers: shared hit=4
+Planning Time: 0.285 ms
+Execution Time: 32.910 ms
+
+[PLANO DE EXECUÇÃO — DEPOIS]
+GroupAggregate  (cost=5.49..1001.41 rows=1 width=115) (actual time=1.793..1.794 rows=1 loops=1)
+  Buffers: shared hit=566
+  ->  Nested Loop  (cost=5.49..987.16 rows=1422 width=23) (actual time=0.114..1.450 rows=2957 loops=1)
+        Buffers: shared hit=566
+        ->  Seq Scan on dim_status_pedido s  (cost=0.00..1.16 rows=2 width=15) (actual time=0.012..0.015 rows=2 loops=1)
+              Filter: ((status_pontualidade_entrega)::text = 'Atrasado'::text)
+              Rows Removed by Filter: 11
+              Buffers: shared hit=1
+        ->  Nested Loop  (cost=5.49..475.00 rows=1800 width=16) (actual time=0.056..0.571 rows=1478 loops=2)
+              Buffers: shared hit=565
+              ->  Bitmap Heap Scan on dim_tempo t  (cost=5.08..23.43 rows=90 width=4) (actual time=0.011..0.020 rows=90 loops=2)
+                    Recheck Cond: ((ano = 2018) AND (trimestre = 1))
+                    Heap Blocks: exact=4
+                    Buffers: shared hit=6
+                    ->  Bitmap Index Scan on idx_dim_tempo_ano_trimestre  (cost=0.00..5.05 rows=90 width=0) (actual time=0.006..0.006 rows=90 loops=2)
+                          Index Cond: ((ano = 2018) AND (trimestre = 1))
+                          Buffers: shared hit=2
+              ->  Index Only Scan using idx_fato_itens_status_tempo_entrega on fato_vendas_itens f  (cost=0.42..4.82 rows=20 width=20) (actual time=0.002..0.004 rows=16 loops=180)
+                    Index Cond: ((sk_status_pedido = s.sk_status_pedido) AND (sk_tempo_compra = t.sk_tempo))
+                    Heap Fetches: 0
+                    Buffers: shared hit=559
+Planning:
+  Buffers: shared hit=16
+Planning Time: 0.404 ms
+Execution Time: 1.834 ms
+
+==============================================================================================================
+>>> Caso 2 — Consulta de Vendas e Frete por Categoria Específica ('beleza_saude') e Região
+--------------------------------------------------------------------------------------------------------------
+  * Tempo de Execução ANTES (Sem Índices / Fato Bruta) : Mediana =   77.385 ms | Média =   81.279 ms
+  * Tempo de Execução DEPOIS (Com Índices / Otimizado) : Mediana =   79.437 ms | Média =   90.557 ms
+  * Ganho Medido                                       : Redução de -2.7% (0.97x mais rápido)
+
+[PLANO DE EXECUÇÃO — ANTES]
+Sort  (cost=9045.41..9045.43 rows=5 width=79) (actual time=66.447..73.397 rows=5 loops=1)
+  Sort Key: (round(sum(f.valor_preco), 2)) DESC
+  Sort Method: quicksort  Memory: 25kB
+  Buffers: shared hit=42749
+  ->  Finalize GroupAggregate  (cost=9044.61..9045.36 rows=5 width=79) (actual time=66.424..73.389 rows=5 loops=1)
+        Group Key: c.regiao_cliente
+        Buffers: shared hit=42749
+        ->  Gather Merge  (cost=9044.61..9045.18 rows=5 width=79) (actual time=66.408..73.363 rows=10 loops=1)
+              Workers Planned: 1
+              Workers Launched: 1
+              Buffers: shared hit=42749
+              ->  Sort  (cost=8044.60..8044.61 rows=5 width=79) (actual time=41.772..41.775 rows=5 loops=2)
+                    Sort Key: c.regiao_cliente
+                    Sort Method: quicksort  Memory: 25kB
+                    Buffers: shared hit=42749
+                    Worker 0:  Sort Method: quicksort  Memory: 25kB
+                    ->  Partial HashAggregate  (cost=8044.46..8044.54 rows=5 width=79) (actual time=41.731..41.736 rows=5 loops=2)
+                          Group Key: c.regiao_cliente
+                          Batches: 1  Memory Usage: 24kB
+                          Buffers: shared hit=42741
+                          Worker 0:  Batches: 1  Memory Usage: 24kB
+                          ->  Nested Loop  (cost=1304.51..7995.78 rows=4868 width=19) (actual time=3.263..39.331 rows=4835 loops=2)
+                                Buffers: shared hit=42741
+                                ->  Parallel Hash Join  (cost=1304.09..5142.71 rows=4868 width=16) (actual time=3.230..21.186 rows=4835 loops=2)
+                                      Hash Cond: (f.sk_produto = p.sk_produto)
+                                      Buffers: shared hit=4060
+                                      ->  Parallel Seq Scan on fato_vendas_itens f  (cost=0.00..3664.65 rows=66265 width=20) (actual time=0.005..4.937 rows=56325 loops=2)
+                                            Buffers: shared hit=3002
+                                      ->  Parallel Hash  (cost=1286.29..1286.29 rows=1424 width=4) (actual time=3.113..3.114 rows=1222 loops=2)
+                                            Buckets: 4096  Batches: 1  Memory Usage: 128kB
+                                            Buffers: shared hit=1044
+                                            ->  Parallel Seq Scan on dim_produto p  (cost=0.00..1286.29 rows=1424 width=4) (actual time=0.012..5.724 rows=2444 loops=1)
+                                                  Filter: ((categoria_pt)::text = 'beleza_saude'::text)
+                                                  Rows Removed by Filter: 30508
+                                                  Buffers: shared hit=1044
+                                ->  Index Scan using dim_cliente_pkey on dim_cliente c  (cost=0.42..0.59 rows=1 width=11) (actual time=0.003..0.003 rows=1 loops=9670)
+                                      Index Cond: (sk_cliente = f.sk_cliente)
+                                      Buffers: shared hit=38681
+Planning:
+  Buffers: shared hit=14
+Planning Time: 0.336 ms
+Execution Time: 73.505 ms
+
+[PLANO DE EXECUÇÃO — DEPOIS]
+Sort  (cost=8891.44..8891.45 rows=5 width=79) (actual time=67.672..74.976 rows=5 loops=1)
+  Sort Key: (round(sum(f.valor_preco), 2)) DESC
+  Sort Method: quicksort  Memory: 25kB
+  Buffers: shared hit=42234
+  ->  Finalize GroupAggregate  (cost=8890.63..8891.38 rows=5 width=79) (actual time=67.647..74.966 rows=5 loops=1)
+        Group Key: c.regiao_cliente
+        Buffers: shared hit=42234
+        ->  Gather Merge  (cost=8890.63..8891.21 rows=5 width=79) (actual time=67.631..74.940 rows=10 loops=1)
+              Workers Planned: 1
+              Workers Launched: 1
+              Buffers: shared hit=42234
+              ->  Sort  (cost=7890.62..7890.63 rows=5 width=79) (actual time=40.945..40.949 rows=5 loops=2)
+                    Sort Key: c.regiao_cliente
+                    Sort Method: quicksort  Memory: 25kB
+                    Buffers: shared hit=42234
+                    Worker 0:  Sort Method: quicksort  Memory: 25kB
+                    ->  Partial HashAggregate  (cost=7890.49..7890.56 rows=5 width=79) (actual time=40.902..40.908 rows=5 loops=2)
+                          Group Key: c.regiao_cliente
+                          Batches: 1  Memory Usage: 24kB
+                          Buffers: shared hit=42226
+                          Worker 0:  Batches: 1  Memory Usage: 24kB
+                          ->  Nested Loop  (cost=1111.79..7841.16 rows=4933 width=19) (actual time=0.924..38.151 rows=4835 loops=2)
+                                Buffers: shared hit=42226
+                                ->  Parallel Hash Join  (cost=1111.38..4949.99 rows=4933 width=16) (actual time=0.896..19.002 rows=4835 loops=2)
+                                      Hash Cond: (f.sk_produto = p.sk_produto)
+                                      Buffers: shared hit=3545
+                                      ->  Parallel Seq Scan on fato_vendas_itens f  (cost=0.00..3664.65 rows=66265 width=20) (actual time=0.006..5.049 rows=56325 loops=2)
+                                            Buffers: shared hit=3002
+                                      ->  Parallel Hash  (cost=1093.34..1093.34 rows=1443 width=4) (actual time=0.798..0.798 rows=1222 loops=2)
+                                            Buckets: 4096  Batches: 1  Memory Usage: 128kB
+                                            Buffers: shared hit=529
+                                            ->  Parallel Bitmap Heap Scan on dim_produto p  (cost=31.30..1093.34 rows=1443 width=4) (actual time=0.246..1.190 rows=2444 loops=1)
+                                                  Recheck Cond: ((categoria_pt)::text = 'beleza_saude'::text)
+                                                  Heap Blocks: exact=525
+                                                  Buffers: shared hit=529
+                                                  ->  Bitmap Index Scan on idx_dim_produto_categoria_pt  (cost=0.00..30.69 rows=2453 width=0) (actual time=0.175..0.176 rows=2444 loops=1)
+                                                        Index Cond: ((categoria_pt)::text = 'beleza_saude'::text)
+                                                        Buffers: shared hit=4
+                                ->  Index Scan using dim_cliente_pkey on dim_cliente c  (cost=0.42..0.59 rows=1 width=11) (actual time=0.003..0.003 rows=1 loops=9670)
+                                      Index Cond: (sk_cliente = f.sk_cliente)
+                                      Buffers: shared hit=38681
+Planning:
+  Buffers: shared hit=28
+Planning Time: 0.518 ms
+Execution Time: 75.059 ms
+
+==============================================================================================================
+>>> Caso 3 — Consulta 01 (ROLLUP Trimestral/Anual na Fato Completa vs. Agregação ROLAP Materializada)
+--------------------------------------------------------------------------------------------------------------
+  * Tempo de Execução ANTES (Sem Índices / Fato Bruta) : Mediana =  211.727 ms | Média =  222.046 ms
+  * Tempo de Execução DEPOIS (Com Índices / Otimizado) : Mediana =    0.025 ms | Média =    0.031 ms
+  * Ganho Medido                                       : Redução de 100.0% (8469.08x mais rápido)
+
+[PLANO DE EXECUÇÃO — ANTES]
+Sort  (cost=10670.89..10671.20 rows=125 width=189) (actual time=252.354..252.357 rows=13 loops=1)
+  Sort Key: t.ano, t.trimestre
+  Sort Method: quicksort  Memory: 26kB
+  Buffers: shared hit=3019
+  ->  MixedAggregate  (cost=41.68..10666.53 rows=125 width=189) (actual time=252.311..252.337 rows=13 loops=1)
+        Hash Key: t.ano, t.trimestre, t.nome_trimestre
+        Hash Key: t.ano, t.trimestre
+        Hash Key: t.ano
+        Group Key: ()
+        Filter: (((t.trimestre IS NOT NULL) AND (t.nome_trimestre IS NOT NULL)) OR ((t.trimestre IS NULL) AND (t.nome_trimestre IS NULL)))
+        Batches: 1  Memory Usage: 72kB
+        Rows Removed by Filter: 9
+        Buffers: shared hit=3019
+        ->  Hash Join  (cost=41.68..4467.03 rows=112650 width=43) (actual time=0.490..79.172 rows=112650 loops=1)
+              Hash Cond: (f.sk_tempo_compra = t.sk_tempo)
+              Buffers: shared hit=3019
+              ->  Seq Scan on fato_vendas_itens f  (cost=0.00..4128.50 rows=112650 width=26) (actual time=0.012..14.846 rows=112650 loops=1)
+                    Buffers: shared hit=3002
+              ->  Hash  (cost=27.97..27.97 rows=1097 width=25) (actual time=0.464..0.464 rows=1097 loops=1)
+                    Buckets: 2048  Batches: 1  Memory Usage: 81kB
+                    Buffers: shared hit=17
+                    ->  Seq Scan on dim_tempo t  (cost=0.00..27.97 rows=1097 width=25) (actual time=0.008..0.230 rows=1097 loops=1)
+                          Buffers: shared hit=17
+Planning Time: 0.236 ms
+Execution Time: 252.436 ms
+
+[PLANO DE EXECUÇÃO — DEPOIS]
+Sort  (cost=1.37..1.40 rows=13 width=172) (actual time=0.014..0.015 rows=13 loops=1)
+  Sort Key: ano, num_trimestre
+  Sort Method: quicksort  Memory: 26kB
+  Buffers: shared hit=1
+  ->  Seq Scan on mv_resumo_trimestral_vendas  (cost=0.00..1.13 rows=13 width=172) (actual time=0.004..0.006 rows=13 loops=1)
+        Buffers: shared hit=1
+Planning Time: 0.023 ms
+Execution Time: 0.023 ms

@@ -1,0 +1,19 @@
+# Dataset bruto (arquivos CSV originais do Kaggle excedem o limite do GitHub)
+data/raw/*.csv
+
+# Caches e artefatos do Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Ambientes virtuais
+.venv/
+venv/
+env/
+
+# Variáveis de ambiente e configurações locais de IDE/Sistema
+.env
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
